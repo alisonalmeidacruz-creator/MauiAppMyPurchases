@@ -1,10 +1,18 @@
-﻿using System;
+﻿using SQLite;
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MauiAppMyPurchases.Models
 {
-    internal class Produto
+    public class Produto
     {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        public string Descricao { get; set; }
+        public decimal Preco { get; set; }
+
+        public double Quantidade { get; set; }
     }
 }
