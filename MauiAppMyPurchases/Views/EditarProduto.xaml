@@ -3,6 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiAppMyPurchases.Views.EditarProduto"
              Title="EditarProduto">
+    <!--
+        Tela de edição de produto.
+        Observação: atualmente é um placeholder. Ao navegar para cá,
+        o BindingContext deve ser um objeto Produto para pré-preencher campos.
+        Depois podemos expandir com Entry ligados às propriedades do Produto.
+    -->
     <VerticalStackLayout>
         <Label 
             Text="Welcome to .NET MAUI!"

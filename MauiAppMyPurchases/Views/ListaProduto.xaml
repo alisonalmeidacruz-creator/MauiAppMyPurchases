@@ -2,12 +2,32 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiAppMyPurchases.Views.ListaProduto"
-             Title="Minhas Compras">
+             Title="Minhas Compras"
+             Shell.NavBarIsVisible="False">
 
+    <!--
+        Página: ListaProduto
+        Descrição: exibe a lista de produtos salvos no banco local.
+        Observações (estilo de aluno): com carinho, aqui mostramos os itens,
+        permitimos busca, remoção e cálculo do total. O ListView está ligado
+        a um ObservableCollection no code-behind para atualizações dinâmicas.
+    -->
+
+    <!-- Itens da toolbar: ações rápidas no topo -->
     <ContentPage.ToolbarItems>
+        <!-- Botão para somar o total dos produtos -->
         <ToolbarItem Text="Somar" Clicked="ToolbarItem_Clicked_1" />
+        <!-- Botão para navegar até a tela de novo produto -->
         <ToolbarItem Text="Adicionar" Clicked="ToolbarItem_Clicked" />
     </ContentPage.ToolbarItems>
+
+    <!-- Fundo com gradiente para deixar a tela mais viva -->
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{StaticResource Primary}" Offset="0" />
+            <GradientStop Color="{StaticResource Secondary}" Offset="1" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -23,18 +43,41 @@
     </ContentPage.Resources>
 
     <StackLayout>
-        <SearchBar x:Name="txt_search"
-                   Placeholder="Busca de Produtos"
-                   TextChanged="txt_search_TextChanged">
-            <SearchBar.Margin>
-                <OnPlatform  x:TypeArguments="Thickness">
-                    <On Platform="Android" Value="-15, 0, 0, 0" />
-                    <On Platform="UWP" Value="5, 0, 5, 0" />
-                </OnPlatform>
-            </SearchBar.Margin>
-        </SearchBar>
+        <!-- Cabeçalho customizado para substituir a barra do Shell (mais colorido) -->
+        <Grid BackgroundColor="{StaticResource Primary}" Padding="18" RowDefinitions="Auto">
+            <Label Text="Minhas Compras" FontSize="24" FontAttributes="Bold"
+                   TextColor="White" VerticalOptions="Center" />
+        </Grid>
+        <!-- Campo de busca: filtra a lista conforme o usuário digita -->
+        <!-- Envolvemos o SearchBar em um Frame colorido para destaque -->
+        <Frame Margin="12,12,12,0" Padding="6" CornerRadius="20" HasShadow="True"
+               BackgroundColor="{StaticResource Secondary}"
+               BorderColor="{StaticResource Primary}">
+            <Grid>
+                <SearchBar x:Name="txt_search"
+                           Placeholder="Busca de Produtos"
+                           TextChanged="txt_search_TextChanged"
+                           BackgroundColor="Transparent"
+                           PlaceholderColor="{StaticResource Gray600}"
+                           TextColor="{StaticResource Gray900}" />
+                <!-- Ícone de lupa à direita (apenas decorativo) -->
+                <Label Text="🔍" HorizontalOptions="End" VerticalOptions="Center" Margin="0,0,8,0" />
+            </Grid>
+        </Frame>
 
-        <Frame Padding="0" Margin="10" VerticalOptions="FillAndExpand">
+        <!-- Container que segura a ListView -->
+        <!-- Container da lista com borda colorida para destacar sobre o gradiente -->
+        <Frame Padding="0" Margin="10" VerticalOptions="FillAndExpand"
+               CornerRadius="20" HasShadow="True"
+               BackgroundColor="Transparent"
+               BorderColor="{StaticResource Primary}"
+               IsClippedToBounds="False">
+            <!--
+                ListView: exibe os produtos. Recursos usados:
+                - Pull to refresh (atualiza do banco)
+                - ItemSelected para editar
+                - ContextActions (menu) para remover
+            -->
             <ListView x:Name="lst_produtos"
                   IsPullToRefreshEnabled="True"
                   Refreshing="lst_produtos_Refreshing"
@@ -53,16 +96,39 @@
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
+                            <!-- Ações de contexto (aparecem ao deslizar o item) -->
                             <ViewCell.ContextActions>
+                                <!-- Remove o produto selecionado -->
                                 <MenuItem Text="Remover" Clicked="MenuItem_Clicked" />
                             </ViewCell.ContextActions>
-                            <Grid ColumnDefinitions="30, 100, 80, 50, 90">
-                                <Label Grid.Column="0" Text="{Binding Id}" Padding="5" />
-                                <Label Grid.Column="1" Text="{Binding Descricao}" />
-                                <Label Grid.Column="2" Text="{Binding Preco, StringFormat='{}{0:c}'}" />
-                                <Label Grid.Column="3" Text="{Binding Quantidade}" />
-                                <Label Grid.Column="4" Text="{Binding Total, StringFormat='{}{0:c}'}" />
-                            </Grid>
+                            <!-- Estilo em cartão para cada item com gradação de cor -->
+                            <Frame CornerRadius="12" Padding="10" Margin="6"
+                                   HasShadow="True"
+                                   BackgroundColor="{StaticResource Secondary}"
+                                   BorderColor="{StaticResource Primary}">
+                                <Grid ColumnDefinitions="40,*,120" RowDefinitions="Auto,Auto">
+                                    <!-- ID pequeno à esquerda -->
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Id}"
+                                           VerticalTextAlignment="Center"
+                                           TextColor="{StaticResource Gray600}" />
+
+                                    <!-- Descrição ocupa a maior parte -->
+                                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding Descricao}"
+                                           Style="{StaticResource TitleLabel}" 
+                                           VerticalOptions="Center" />
+
+                                    <!-- Preço alinhado à direita -->
+                                    <Label Grid.Row="0" Grid.Column="2"
+                                           Text="{Binding Preco, StringFormat='{}{0:c}'}"
+                                           HorizontalOptions="End"
+                                           Style="{StaticResource SubtitleLabel}" />
+
+                                    <!-- Linha inferior com quantidade e total -->
+                                    <Label Grid.Row="1" Grid.Column="0" Text="Qnt:" TextColor="{StaticResource Gray600}" />
+                                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding Quantidade}" Style="{StaticResource SubtitleLabel}" />
+                                    <Label Grid.Row="1" Grid.Column="2" Text="{Binding Total, StringFormat='Total: {0:c}'}" HorizontalOptions="End" Style="{StaticResource SubtitleLabel}" />
+                                </Grid>
+                            </Frame>
                         </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>

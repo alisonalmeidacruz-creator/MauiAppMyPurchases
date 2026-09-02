@@ -4,18 +4,28 @@
              x:Class="MauiAppMyPurchases.Views.NovoProduto"
              Title="Novo Produto">
 
+    <!-- Barra de ferramentas com ação Salvar -->
     <ContentPage.ToolbarItems>
+        <!-- Ao clicar em Salvar, o método ToolbarItem_Clicked no code-behind é executado -->
         <ToolbarItem Text="Salvar" Clicked="ToolbarItem_Clicked"/>
     </ContentPage.ToolbarItems>
 
+    <!--
+        Formulário simples para criar um novo produto.
+        Observação carinhosa: mantenha os campos preenchidos corretamente,
+        quantidade e preço devem ser números.
+    -->
     <VerticalStackLayout Spacing="10" Padding="10">
         <Label Text="Descrição do Produto: "/>
+        <!-- Entrada de texto para descrição -->
         <Entry x:Name="txt_descricao"/>
 
         <Label Text="Quantidade: "/>
+        <!-- Entrada numérica para quantidade -->
         <Entry x:Name="txt_quantidade" Keyboard="Numeric"/>
 
         <Label Text="Preço Unitário: "/>
+        <!-- Entrada numérica para preço -->
         <Entry x:Name="txt_preco" Keyboard="Numeric"/>
     </VerticalStackLayout>
 </ContentPage>
