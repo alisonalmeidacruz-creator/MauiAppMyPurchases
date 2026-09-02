@@ -8,11 +8,13 @@ namespace MauiAppMyPurchases.Models
 
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
+
         public string Descricao
         {
             get => _descricao;
             set
             {
+                // Verifica se a descrição foi preenchida
                 if (value == null)
                 {
                     throw new Exception("Por favor, preencha a descrição");
@@ -21,8 +23,9 @@ namespace MauiAppMyPurchases.Models
                 _descricao = value;
             }
         }
+
         public double Quantidade { get; set; }
         public double Preco { get; set; }
         public double Total { get => Quantidade * Preco; }
-    } // Fecha classe
-} // Fecha Namespace
+    }
+}
