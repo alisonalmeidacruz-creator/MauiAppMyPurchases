@@ -3,35 +3,27 @@ using MauiAppMyPurchases;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-// Arquivo: ListaProduto.xaml.cs
-// Objetivo: lógica por trás da página de listagem de produtos.
-// Comentários explicativos: descrevo o comportamento para facilitar
-// entendimento e manutenção por outros desenvolvedores.
-
 namespace MauiAppMyPurchases.Views;
 
 public partial class ListaProduto : ContentPage
 {
-    // ObservableCollection é usada para que o ListView atualize automaticamente
-    // quando itens são adicionados ou removidos.
     ObservableCollection<Produto> lista = new ObservableCollection<Produto>();
 
     public ListaProduto()
     {
         InitializeComponent();
-        // Vincula a coleção ao controle ListView definido no XAML
+
         lst_produtos.ItemsSource = lista;
+
+        // Começa mostrando todas as categorias
+        picker_categoria.SelectedIndex = 0;
     }
 
     protected async override void OnAppearing()
     {
         try
         {
-            // Ao aparecer a página, recarregamos os dados do banco
-            lista.Clear();
-            List<Produto> tmp = await App.Db.GetAll();
-            // Adiciona um a um para disparar notificações da coleção
-            tmp.ForEach(i => lista.Add(i));
+            await CarregarProdutos();
         }
         catch (Exception ex)
         {
@@ -39,13 +31,34 @@ public partial class ListaProduto : ContentPage
         }
     }
 
+    // Carrega os produtos do banco e aplica o filtro de categoria
+    private async Task CarregarProdutos()
+    {
+        lista.Clear();
+
+        List<Produto> produtos = await App.Db.GetAll();
+
+        string categoria = picker_categoria.SelectedItem?.ToString();
+
+        if (!string.IsNullOrEmpty(categoria) && categoria != "Todas")
+        {
+            produtos = produtos
+                .Where(p => p.Categoria == categoria)
+                .ToList();
+        }
+
+        foreach (Produto produto in produtos)
+        {
+            lista.Add(produto);
+        }
+    }
+
+    // Adiciona um novo produto
     private void ToolbarItem_Clicked(object sender, EventArgs e)
     {
         try
         {
-            // Navega para a página de criação de novo produto
             Navigation.PushAsync(new Views.NovoProduto());
-
         }
         catch (Exception ex)
         {
@@ -53,17 +66,19 @@ public partial class ListaProduto : ContentPage
         }
     }
 
+    // Pesquisa os produtos pela descrição
     private async void txt_search_TextChanged(object sender, TextChangedEventArgs e)
     {
         try
         {
             string q = e.NewTextValue;
-            // Marca como atualizando para mostrar feedback ao usuário
+
             lst_produtos.IsRefreshing = true;
 
-            // Limpa e busca novamente filtrando pelo texto digitado
             lista.Clear();
+
             List<Produto> tmp = await App.Db.Search(q);
+
             tmp.ForEach(i => lista.Add(i));
         }
         catch (Exception ex)
@@ -76,31 +91,48 @@ public partial class ListaProduto : ContentPage
         }
     }
 
+    // Filtra os produtos pela categoria escolhida
+    private async void picker_categoria_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        try
+        {
+            await CarregarProdutos();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+        }
+    }
+
+    // Soma o total dos produtos
     private void ToolbarItem_Clicked_1(object sender, EventArgs e)
     {
-        // Calcula o total somando a propriedade Total de cada produto
         double soma = lista.Sum(i => i.Total);
 
         string msg = $"O total é {soma:C}";
 
-        // Mostra o resultado em um alerta simples
         DisplayAlert("Total dos Produtos", msg, "OK");
     }
 
+    // Remove um produto
     private async void MenuItem_Clicked(object sender, EventArgs e)
     {
         try
         {
-            MenuItem selecinado = sender as MenuItem;
-            Produto p = selecinado.BindingContext as Produto;
-            // Pergunta confirmação antes de excluir
+            MenuItem selecionado = sender as MenuItem;
+
+            Produto p = selecionado.BindingContext as Produto;
+
             bool confirm = await DisplayAlert(
-                "Tem Certeza?", $"Remover {p.Descricao}?", "Sim", "Não");
+                "Tem Certeza?",
+                $"Remover {p.Descricao}?",
+                "Sim",
+                "Não");
 
             if (confirm)
             {
-                // Remove do banco e da lista (o ListView atualiza automaticamente)
                 await App.Db.Delete(p.Id);
+
                 lista.Remove(p);
             }
         }
@@ -110,17 +142,17 @@ public partial class ListaProduto : ContentPage
         }
     }
 
-    private void lst_produtos_ItemSelected(object sender,
+    // Abre a tela de edição do produto
+    private void lst_produtos_ItemSelected(
+        object sender,
         SelectedItemChangedEventArgs e)
     {
         try
         {
-            // Quando um item é selecionado, navegamos para a tela de edição
             Produto p = e.SelectedItem as Produto;
 
             Navigation.PushAsync(new Views.EditarProduto
             {
-                // Passamos o produto como BindingContext para pre-preencher o formulário
                 BindingContext = p,
             });
         }
@@ -130,20 +162,16 @@ public partial class ListaProduto : ContentPage
         }
     }
 
+    // Atualiza a lista quando o usuário puxa para baixo
     private async void lst_produtos_Refreshing(object sender, EventArgs e)
     {
         try
         {
-            // Refresh manual: limpa e recarrega do banco
-            lista.Clear();
-
-            List<Produto> tmp = await App.Db.GetAll();
-            tmp.ForEach(i => lista.Add(i));
+            await CarregarProdutos();
         }
         catch (Exception ex)
         {
             await DisplayAlert("Ops", ex.Message, "OK");
-
         }
         finally
         {
